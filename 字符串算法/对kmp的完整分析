@@ -1,0 +1,103 @@
+# KMP算法分析
+
+[toc]
+
+## 定义
+
+全称为***knuth-Morris-Pratt***字符串查找算法 是一种可以在文本串***s***中快速查找模式串***p***的一种算法
+
+---
+
+
+
+## 对暴力的分析
+
+暴力即为逐字符匹配地进行匹配（比较s[i]和s[j]）,如果当前字符匹配成功，就匹配下一个字符，不然就回溯到开头，j设置为0；
+
+```c++
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main()
+{
+    string s1, s2;
+    cin >> s1 >> s2;
+    
+    int i = 0, j = 0;
+    while (i < s1.size() && j < s2.size())
+    {
+        if (s1[i] == s2[j])
+        {
+            i++;
+            j++;
+            if (j == s2.size())
+            {
+                cout << "Yes" << endl;
+                return 0;
+            }
+        }
+        else
+        {
+            i = i - j + 1; 
+            j = 0;  
+        }
+    }
+    
+    cout << "No" << endl;
+    return 0;
+}
+```
+
+显然，该代码时间复杂在最极端情况下趋近于O(mn),大部分时间浪费在回溯的环节上浪费了时间。但当i不回溯，同时把j置为0，很可能出现缺漏。
+
+于是为了让j被赋为一个合适的值，我们引入PMT（ 部分匹配表）
+
+---
+
+## pmt(部分匹配表)
+
+简单来说，pmt[i]的含义是从p[0]往后数，同时从p[i]往前数相同的位数，在保证前后缀相同的情况下，最多能数多少位。
+
+那为什么可以用pmt来确定j的值呢，
+
+比如abab a bcabaa
+
+   abab c abaa
+
+我们将第一次失配时的位置隔开,a 与 c不匹配。这是i保持不变，此时abab已经匹配起来了，那我们可以利用前缀以及后缀ab。
+
+变为 ab aba bcabaa
+
+​       aba bcabaa
+
+这时就是正在令j=pmt[j-1],有可能一次不匹配，那么就一直返回pmt[j-1]直至j减到0或者匹配，若j=0，则停止移动j指针.
+
+```cpp
+for(int i=0,j=0;i<s.length();++i)
+{
+    while(j&&s[i]!=p[j])j=pmt[j-1];
+    if(s[i]==p[j])j++;
+    if(j==p.length())
+    {
+        j=pm
+	}
+}
+```
+
+接下来 我们要开始计算pmt数组（表）
+
+如果暴力求pmt 复杂度O($m^2$).有一种很巧妙的方法，在错开1位后，让p自己匹配自己（这相当于用前缀匹配后缀）我们已知
+
+pmt[0]=0,而后可以在匹配过程中记录j值得到
+
+```cpp
+pmt[0]=0;
+for(int i=1,j=0;i<plen;++i)
+{
+    while(j&&p[i]!=p[j])j=pmt[j-1];
+    if(p[i]==p[j])j++;
+    pmt[i]=j;
+}
+```
+

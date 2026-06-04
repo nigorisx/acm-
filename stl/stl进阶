@@ -1,0 +1,149 @@
+# stl 进阶
+
+[toc]
+
+## 动态MEX维护
+
+不会直接去计算mex，而是会去维护一个***当前未在序列出现***的数的集合
+
+>空缺集
+>
+>set<int>missing 存放所有cnt[v]==0 的 v
+
+ 
+
+## pb_ds（Policy-Based Data Structures）
+
+***是一种特殊的库，其中封装了四种容器：平衡树，字典树，哈希表，和堆***
+
+```cpp
+#include <ext/pb_ds/assoc_container.hpp> //关联容器，必加
+#include <ext/pb_ds/hash_policy.hpp>     //哈希表
+#include <ext/pb_ds/tree_policy.hpp>     //平衡树
+#include <ext/pb_ds/trie_policy.hpp>     //字典树
+#include <ext/pb_ds/priority_queue.hpp>  //优先队列
+
+也有万能头
+#include <bits/extc++.h>
+命名空间
+using namespace __gnu_cxx;
+using namespace __gnu_pbds;
+
+```
+
+### 哈希表
+
+```cpp
+// 以下 T1,T2 代表两种类型。
+__gnu_pbds::gp_hash_table <T1, T2> H1;
+// gp 探查法解决哈希冲突，更快，一般我们都用这个，下文的哈希表也都指这个。
+__gnu_pbds::cc_hash_table <T1, T2> H2;
+// cc 拉链法解决哈希冲突，较慢，比 unordered_map 还慢。
+其实直接当没有 emplace(),cbegin(),cend() 的 unordered_map 用就好了
+    
+#include <ctime>
+#include <ext/pb_ds/assoc_container.hpp>
+const int RANDOM = time(NULL);
+struct MyHash {int operator() (int x) const {return x ^ RANDOM;}};
+__gnu_pbds::gp_hash_table <int, int, MyHash> Table;
+一种防卡的方法
+```
+
+### 平衡树
+
+`__gnu_pbds::tree`
+
+```cpp
+#include <ext/pb_ds/assoc_container.hpp>  // 因为 tree 定义在这里 所以需要包含这个头文件
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+__gnu_pbds::tree<std::pair<int, int>, __gnu_pbds::null_type,std::less<std::pair<int, int>>, __gnu_pbds::rb_tree_tag,
+                 __gnu_pbds::tree_order_statistics_node_update>trr;
+
+insert(x)：向树中插入一个元素 x，返回 std::pair<point_iterator, bool>，其中第一个元素代表插入位置的迭代器，第二个元素代表是否插入成功．
+erase(x)：从树中删除一个元素/迭代器 x．如果 x 是迭代器，则返回指向 x 下一个的迭代器（如果 x 是 end() 则返回 end()）；如果 x 是 Key，则返回是否删除成功（如果不存在则删除失败）．
+order_of_key(x)：返回严格小于 x 的元素个数（以 Cmp_Fn 作为比较逻辑），即从 0
+0 开始的排名．
+find_by_order(x)：返回 Cmp_Fn 比较的排名所对应元素的迭代器．
+lower_bound(x)：返回第一个不小于 x 的元素所对应的迭代器（以 Cmp_Fn 作为比较逻辑）．
+upper_bound(x)：返回第一个严格大于 x 的元素所对应的迭代器（以 Cmp_Fn 作为比较逻辑）．
+join(x)：将 x 树并入当前树，x 树被清空（必须确保两树的 比较函数 和 元素类型 相同）．
+split(x,b)：以 Cmp_Fn 比较，小于等于 x 的属于当前树，其余的属于 b 树．
+empty()：返回是否为空．
+size()：返回大小．
+```
+
+## bitset
+
+`std::bitset` 是标准库中的一个存储 `0/1` 的大小不可变容器．严格来讲，它并不属于 STL.
+
+由于内存地址是按字节即 `byte` 寻址，而非比特 `bit`，一个 `bool` 类型的变量，虽然只能表示 `0/1`, 但是也占了 1 byte 的内存．
+
+`bitset` 就是通过固定的优化，使得一个字节的八个比特能分别储存 8 位的 `0/1`．
+
+对于一个 4 字节的 `int` 变量，在只存 `0/1` 的意义下，`bitset` 占用空间只是其 1/32![\frac{1}{32}](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)，计算一些信息时，所需时间也是其 1/32![\frac 1{32}](data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)．
+
+***支持操作***
+
+```cpp
+bitset<N>bs;
+bs.count() 返回 1 的个数  O(N/64) ，非常快，常用于求集合大小
+bs.any() 是否存在 1
+bs.none() 是否全为 0
+bs.all()  是否全为 1
+bs.set()全部置1 
+bs.reset()全部置0 
+bs.flip()全部取反
+bs.test(pos)  返回第 pos 位的值 
+bs.to_ulong()  转为 unsigned long
+ bs._Find_first() 
+：返回第一个 1 的下标。如果没有则返回 bitset 的大小
+bs._Find_next(pos) 
+：返回 pos之后第一个 1 的下标
+```
+
+## 珂朵莉树（ODT）
+
+***ODT 维护的是 区间的颜色（或数值） ，能够维护下列操作：***
+
+***1.将区间 [l,r] 上的所有数值修改为 val （推平操作），或把所有数值 a[i] 变为 f(a[i]) （修改操作）***
+
+***2.查询区间 [l,r] 上的复杂信息 g(l,r)***
+
+***3.底层原理 ：它将一段连续且值相等的区间  [L, R] 合并为一个节点，存入  1],[pos,R]  从而不断细分并维护信息；通过 set  ，通过 split  操作可以将区间 [L,R]  分裂为 assign  操作可以将区间 [L,pos [L,R]  内的所有小区间合并成一个大区间，并且整个区间的数值 相等***
+
+***适用条件***:
+
+1.***有区间赋值操作***
+
+***2.数据倾向于随机 。在随机数据下，set 的大小（区间数量）会迅速收敛至  O(loglogN)***
+
+```cpp
+struct node {
+    int l, r;
+    mutable int val;// mutable 允许我们在不删除节点的情况下修改val
+    node(int L, int R =-1, int V = 0) :l(L), r(R), val(V) {}
+    bool operator<(const node& t)const {
+        return l < t.l;
+    }
+};
+set<node>odt
+    auto split(int pos) {
+    auto it = odt.lower_bound(node(pos));
+    if (it != odt.end() && it->l == pos)return it;
+    it--;// pos 一定在*prev(it) 所在的区间里
+    auto [l, r, val] = *it;
+    odt.erase(it);
+    odt.insert(node(l, pos - 1, val));
+    return odt.insert(node(pos, r, val)).first;// 返回新生成的右半部分迭代器
+}
+void assign(int l, int r, int val) {
+    auto itr = split(r + 1), itl = split(l);
+    odt.erase(itl, itr);// 删除[itl, itr)
+    odt.insert(node(l, r, val));
+}
+#其他操作（暴力实现）
+1.auto itr = split(r + 1), itl = split(l);
+2. 遍历从 itl到itr 的迭代器进行计算
+```
+
