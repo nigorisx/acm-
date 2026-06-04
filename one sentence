@@ -1,5 +1,5 @@
 this is my note
 
 git add .               # 1. 记录所有变动
-git commit -m "更新了某篇文章" # 2. 给这次变动写个备注
+git commit -m # 2. 给这次变动写个备注
 git push               # 3. 推送到 GitHub 云端
