@@ -68,3 +68,59 @@ vector<int> prefix_function(string s) {
 }
 ```
 
+完整代码
+
+```c++
+#include<bits/stdc++.h>
+using namespace std;
+#define int long long
+namespace SOL
+{
+    using ll = long long;
+    using pii = pair<int, int>;
+    using vi = vector<int>;
+    using vvi = vector<vector<int>>;
+    const int INF = 0x3f3f3f3f;
+    const ll LLINF = 0x3f3f3f3f3f3f3f3fLL;
+    template<typename T, typename L>
+    bool chkmax(T &x, L y) { if (x < y) return x = y, true; return false; }
+    template<typename T, typename L>
+    bool chkmin(T &x, L y) { if (y < x) return x = y, true; return false; }
+    void solve()
+    {
+        string s1,s2;		
+        cin>>s1>>s2;
+        vi pmt(s2.size());
+        pmt[0]=0;
+        for (int i=1,j=0;i<s2.size();i++) {
+            while (j&&s2[i]!=s2[j])j=pmt[j-1];
+            if (s2[i]==s2[j])j++;
+            pmt[i]=j;
+        }
+        vi ans;
+        for (int i=0,j=0;i<s1.size();i++) {
+            while (j&&s1[i]!=s2[j])j=pmt[j-1];
+            if (s1[i]==s2[j])j++;
+            if (j==s2.size()) {
+                ans.push_back(i-j+2);
+                j=pmt[j-1];
+            }
+        }
+        for (auto t:ans)cout<<t<<"\n";//s2在s1出现的位置
+        for (int i=0;i<s2.size();i++) {
+            cout<<pmt[i]<<" ";
+        }
+    }
+}
+signed main()
+{
+    ios::sync_with_stdio(false), cin.tie(0), cout.tie(0);
+    int t;
+    t=1;
+    while(t--)
+    {
+        SOL::solve();
+    }
+}
+```
+
